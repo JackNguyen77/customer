@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="assets_backend" name="linkly assets" inherit_id="web.assets_backend">
+        <xpath expr="." position="inside">
+            <script type="text/javascript" src="/hv_payment_linkly/custom_js.js"></script>
+        </xpath>
+    </template>
+    <data noupdate="1">
+        <record model="ir.config_parameter" id="haviapiurl_linkly">
+            <field name="key">Havi.Api.Url.Linkly</field>
+            <field name="value">https://node.havi.com.au/linkly</field>
+        </record>
+        <record model="ir.config_parameter" id="haviweb_url">
+            <field name="key">Your.Web.Url</field>
+            <!-- <field name="value">http://haviodoo241.mooo.com:8132</field> -->
+            <field name="value">http://localhost:8069</field>
+        </record>
+        <record id="payment_acquirer_linkly" model="payment.acquirer">
+            <field name="name">Linkly - Payment</field>
+            <field name="display_as">Linkky: own it now, pay later</field>
+            <field name="provider">linkly</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+        <record id="linkly_account_journal" model="account.journal">
+            <field name="name">Credit Card</field>
+            <field name="code">Linkly</field>
+            <field name="type">bank</field>
+            <field name="acquirer_id" ref="payment_acquirer_linkly"/>
+            <field name="use_payment_terminal">linkly</field>
+            <field name="linkly_account">23500433001</field>
+            <field name="linkly_api_password">5X6HCAR28PKCKGIJ</field>
+            <!-- avoid being selected as default journal -->
+            <field name="sequence">99</field>
+        </record>
+    </data>
+    <data>
+        <record id="view_account_journal_form_inherit" model="ir.ui.view">
+            <field name="name">account.journal.form.inherit</field>
+            <field name="model">account.journal</field>
+            <field name="inherit_id" ref="account.view_account_journal_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//page[@name='advanced_settings']/group/group[4]" position="after">
+                    <group string="Payment Method Types">
+                        <field name="use_payment_terminal"/>
+                        <field name="linkly_account" attrs="{'invisible': [('use_payment_terminal', '!=', 'linkly')], 'required': [('use_payment_terminal', '=', 'linkly')]}"/>
+                        <field name="linkly_api_password" attrs="{'invisible': [('use_payment_terminal', '!=', 'linkly')], 'required': [('use_payment_terminal', '=', 'linkly')]}"/>    
+                        <field name="linkly_time_out" attrs="{'invisible': [('use_payment_terminal', '!=', 'linkly')]}"/>
+                        <field name="linkly_test_mode" attrs="{'invisible': [('use_payment_terminal', '!=', 'linkly')]}"/>
+                        <field name="acquirer_id" attrs="{'invisible': [('use_payment_terminal', '!=', 'linkly')]}" readonly="1"/>
+                        <field name="linkly_paircode" attrs="{'invisible': [('use_payment_terminal', '!=', 'linkly')]}"/>
+                        <field name="linkly_secret" attrs="{'invisible': [('use_payment_terminal', '!=', 'linkly')]}" readonly="1" style="white-space: normal;word-break: break-word;"/>
+                        <button string='Pair PIN Pad' name="linkly_pair_pin_pad" type="object" class="oe_highlight" attrs="{'invisible': [('use_payment_terminal', '!=', 'linkly')]}"/>
+                        <!-- <button string='Get Domain' name="linkly_getdomain" type="object" class="oe_highlight" attrs="{'invisible': [('use_payment_terminal', '!=', 'linkly')]}"/> -->
+
+                    </group>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="view_linkly_payment_register_form" model="ir.ui.view">
+            <field name="name">linkly.payment.register.form</field>
+            <field name="model">linkly.payment.register</field>
+            <field name="priority">1000</field>
+            <field name="arch" type="xml">
+                <form>
+                    <group>
+                        <group>
+                            <field name='amount' readonly="1"/>
+                            <field name='journal_id' options="{'no_create': True}" domain="[('use_payment_terminal', '=', 'linkly')]"/>
+                            <field name='payment_register_id' invisible="1"/>
+                            <field name='sale_order_ids' invisible="1"/>
+                            <field name='partner_id' invisible="1"/>
+                            <field name='currency_id' invisible="1"/>
+                            <field name='communication' invisible="1"/>
+                        </group>
+                    </group>
+                    <footer>
+                        <widget name='linkly_payment_button' button_name="linkly_sale_payment" title="Pay"/>
+                        <!-- <button string='Pay' name="linkly_sale_payment" type="object" class="oe_highlight"/> -->
+                        <button string="Cancel" class="btn btn-secondary" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+         <record id="view_account_payment_register_form_inherit_payment" model="ir.ui.view">
+            <field name="name">account.payment.register.form.inherit.payment</field>
+            <field name="model">account.payment.register</field>
+            <field name="inherit_id" ref="account.view_account_payment_register_form"/>
+            <field name="arch" type="xml">
+                <data>
+                    <xpath expr="//footer/button[1]" position='before'>
+                        <field name="use_payment_terminal" invisible="1"/>
+                        <field name="payment_type" invisible="1"/>
+                        <widget name='linkly_payment_button' button_name="linkly_payment" title="Pay" attrs="{'invisible': ['|', ('use_payment_terminal', '!=', 'linkly'), ('payment_type', '!=', 'inbound')]}"/>
+                        <widget name='linkly_payment_button' button_name="linkly_refund" title="Refund" attrs="{'invisible': ['|', ('use_payment_terminal', '!=', 'linkly'), ('payment_type', '!=', 'outbound')]}"/>
+                    </xpath>
+                    <xpath expr="//button[@name='action_create_payments']" position="replace">
+                        <button name="action_create_payments" class="oe_highlight"  string="Create Payment" type="object" attrs="{'invisible': [('use_payment_terminal', '=', 'linkly')]}"/>
+                    </xpath>
+                </data>
+            </field>
+        </record>
+
+        <record id="sale_order_mw_view_form" model="ir.ui.view">
+            <field name="name">sale.order.mw.view.form</field>
+            <field name="model">sale.order</field>
+            <field name="inherit_id" ref="sale.view_order_form"/>
+            <field name="arch" type="xml">
+                <field name="state" position="before">
+                    <button string="Linkly Pay" name="linkly_payment_sale" class="btn-primary" type="object" attrs="{'invisible': [ ('state', 'in', ['sale', 'done', 'cancel'])]}"/>
+                </field>
+            </field>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,20 @@
+{
+    'name': 'Havi POS - Linkly',
+    'version': '14.0',
+    'category': 'Sales/Point of Sale',
+    'summary': 'Integrate your POS with an Linkly payment',
+    'description': '',
+    'author': "Havi Technology",
+    'website': "https://havi.com.au",
+    'data': [
+        # 'security/ir.model.access.csv',
+        # 'views/adyen_account_views.xml',
+        # 'views/pos_config_views.xml',
+        'views/pos_payment_method_views.xml',
+        'views/point_of_sale_assets.xml',
+        # 'views/res_config_settings_views.xml',
+    ],
+    'depends': ['point_of_sale', 'hv_payment_linkly'],
+    'qweb': ['static/src/xml/pos.xml'],
+    'installable': True,
+}

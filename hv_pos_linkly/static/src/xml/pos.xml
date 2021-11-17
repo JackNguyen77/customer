@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+    <!-- <t t-elif="props.line.payment_status == 'retry'">
+        <div>
+                    Transaction cancelled
+                </div>
+        <div class="button send_payment_request highlight" title="Send Payment Request" t-on-click="trigger('send-payment-request', props.line)">
+                    Retry
+                </div>
+    </t>
+    <t t-elif="props.line.payment_status == 'waitingCard'">
+        <div>
+                    Waiting for card
+                </div>
+        <div class="button send_payment_cancel" title="Cancel Payment Request" t-on-click="trigger('send-payment-cancel', props.line)">
+                    Cancel
+                </div>
+    </t> -->
+    <t t-name="PaymentScreenElectronicPayment" t-inherit="point_of_sale.PaymentScreenElectronicPayment" t-inherit-mode="extension" owl="1">
+        <xpath expr="//div[hasclass('send_payment_cancel')]/../div[1]" position="replace">
+            <t t-if="props.line.linkly_status">
+                <div><t t-esc="props.line.linkly_status"/></div>
+            </t>
+            <t t-else="">
+                <div> Waiting for card</div>
+            </t>
+            <div class="button send_payment_status highlight" title="Send Payment Status" t-on-click="trigger('send-payment-status', props.line)">
+                <div class="fa fa-refresh"/>
+            </div>
+        </xpath>
+        <xpath expr="//div/t[2]" position="replace">
+            <t t-elif="props.line.payment_status == 'retry'">
+                <t t-if="!props.line.linkly_payment_done  &amp;&amp; props.line.linkly_payment_id>0">
+                    <div>Connection break</div>
+                    <div class="button send_payment_status highlight" title="Send Payment Status" t-on-click="trigger('send-payment-status', props.line)">
+                        <div class="fa fa-refresh"/>
+                    </div>
+                </t>
+                <t t-else="">
+                    <div>Transaction cancelled</div>
+                    <div class="button send_payment_request highlight" title="Send Payment Request" t-on-click="trigger('send-payment-request', props.line)">
+                            Retry
+                        </div>
+                </t>
+            </t>
+        </xpath>
+    </t>
+</templates>
